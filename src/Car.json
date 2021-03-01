@@ -1,5 +1,5 @@
 {
-    "address": "0xf55CBB709eFb3C5Dfc3914A9fA5a5786e3679f4E",
+    "address": "0x8c53eAF4CDe749077BB2079b69446b84E69cD5e1",
 	"abi": [
         {
             "constant": false,
@@ -13,6 +13,20 @@
             "outputs": [],
             "payable": false,
             "stateMutability": "nonpayable",
+            "type": "function"
+        },
+        {
+            "constant": false,
+            "inputs": [
+                {
+                    "name": "_id",
+                    "type": "uint256"
+                }
+            ],
+            "name": "levelUp",
+            "outputs": [],
+            "payable": true,
+            "stateMutability": "payable",
             "type": "function"
         },
         {
@@ -51,6 +65,18 @@
                 }
             ],
             "name": "CreatedCar",
+            "type": "event"
+        },
+        {
+            "anonymous": false,
+            "inputs": [
+                {
+                    "indexed": false,
+                    "name": "id",
+                    "type": "uint256"
+                }
+            ],
+            "name": "LevelUpSuccess",
             "type": "event"
         },
         {
