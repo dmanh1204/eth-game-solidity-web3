@@ -1,3 +1,4 @@
+pragma solidity ^0.5.0;
 
 contract CarContract {
     struct Car {
@@ -22,6 +23,7 @@ contract CarContract {
     
     event CreatedCar(uint id, string name, uint color, uint level, uint ready);
     event LevelUpSuccess(uint id);
+    event MergeTwoCar(uint _from, uint _to, string name);
     
     constructor() public {
         createRandomCar("Lamborghini");
@@ -67,6 +69,38 @@ contract CarContract {
         require(msg.value >= uint(_car.level*levelUpFee), "Not enough wei to level up!");
         cars[_id].level++;
         emit LevelUpSuccess(_id);
+    }
+    
+    //create car with already level 
+    function createCarWithLevel(string memory _name, uint color, uint level) public {
+        taskCount++;
+        uint _ready = uint(now + coolDownTime);
+        Car memory _car = Car(taskCount, _name, color, level, _ready);
+        cars[taskCount] = _car;
+        carToOwner[taskCount] = msg.sender;
+        ownerCarCount[msg.sender]++;
+        emit CreatedCar(taskCount, _name, color, level, _ready);
+    }
+    
+    //merge two cars
+    function mergeTwoCar(uint _from, uint _to, string memory _name) public onlyOwnerOf(_from) onlyOwnerOf(_to) {
+        require(_from != _to, "Two car must be diffirent!");
+        Car memory _fromCar = cars[_from];
+        Car memory _toCar = cars[_to];
+        uint newColor = (_fromCar.color + _toCar.color) / 2;
+        newColor = newColor % colorModulus;
+        uint level = _fromCar.level + _toCar.level;
+        createCarWithLevel(_name, newColor, level);
+        deleteCar(_from);
+        deleteCar(_to);
+        emit MergeTwoCar(_from, _to, _name);
+    }
+    
+    //delete car
+    function deleteCar(uint _id) private onlyOwnerOf(_id) {
+        delete cars[_id];
+        delete carToOwner[_id];
+        ownerCarCount[msg.sender]--;
     }
     
     modifier onlyOwnerOf(uint _id) {

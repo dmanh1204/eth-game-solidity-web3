@@ -13,6 +13,7 @@ function App() {
   const [carName, setCarName] = useState("");
   const [cars, setCars] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [selectedCar, setSelectedCar] = useState([]);
 
   useEffect(() => {
     loadBlockchainData();
@@ -78,7 +79,6 @@ function App() {
   }
 
   const getOwnerCars = async (contract) => {
-    console.log("active");
     try {
       const carArr = await contract.methods
         .getOwnerCar()
@@ -95,6 +95,72 @@ function App() {
       setLoading(false);
     } catch (error) {
       console.log(error);
+    }
+  }
+
+  const handleSelectCar = (id) => {
+    const index = selectedCar.findIndex((e) => e.id == id);
+    if (selectedCar.length < 2) {
+      if (index === -1) {
+        setSelectedCar([...selectedCar, id]);
+      } else {
+        setSelectedCar(
+          [
+            ...selectedCar.slice(0, index),
+            ...selectedCar.slice(index + 1, selectedCar.length),
+          ]
+        );
+      }
+    } else {
+      if (index === -1) {
+        setSelectedCar([
+          ...selectedCar.slice(
+            selectedCar.length - 1, 
+            selectedCar.length
+          ),
+          id
+        ]);
+      } else {
+        setSelectedCar([
+          ...selectedCar.slice(0, index),
+          ...selectedCar.slice(index + 1, selectedCar.length)
+        ]);
+      }
+    }
+  }
+  //merge car
+  // const mergeTwoCars = async () => {
+  //   const name = window.prompt("Enter name of ur new car: ");
+  //   await carContract.methods
+  //     .mergeTwoCar()
+  // }
+
+  //level up success
+  const upLevelSuccess = () => {
+    return carContract.getPastEvents("LevelUpSuccess", {}, (err, result) => {
+      if (!err) {
+        const { id } = result[0].returnValues;
+        let _car = cars.find((car) => (car.id === id));
+        _car.level = +_car.level + 1;
+        setCars([...cars])
+      } else {
+        console.log(err)
+      }
+    })
+  }
+
+  //use effect for level up update
+
+  //handle onclick level up
+  const levelUp = async (id, level) => {
+    if (id && level) {
+      return carContract.methods
+        .levelUp(id)
+        .send({ from: userAddress , value: web3.utils.toWei(String(0.001 * level), "ether") })
+        .on("receipt", (err, result) => {
+          upLevelSuccess();
+        })
+        .on("error", () => alert("Error"))
     }
   }
 
@@ -119,7 +185,7 @@ function App() {
               <div className="list-cars">
                   {
                     cars.map((car, index) => (
-                      <Car key={index} car={car} />
+                      <Car key={index} car={car} levelUp={levelUp} handleSelectCar={handleSelectCar} selectedCar={selectedCar} />
                     ))
                   }
               </div>
