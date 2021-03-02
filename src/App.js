@@ -99,7 +99,7 @@ function App() {
   }
 
   const handleSelectCar = (id) => {
-    const index = selectedCar.findIndex((e) => e.id == id);
+    const index = selectedCar.findIndex((e) => e == id);
     if (selectedCar.length < 2) {
       if (index === -1) {
         setSelectedCar([...selectedCar, id]);
@@ -128,12 +128,45 @@ function App() {
       }
     }
   }
+
+  //delete index from array
+  const deleteIndexArray = (id, arr) => {
+    const index = arr.includes((e) => e.id == id);
+    return [...arr.slice(0, index), ...arr.slice(index + 1, arr.length)];
+  }
+
+  //handle merge two car
+  const handleMergeTwoCar = () => {
+    return carContract.getPastEvents("MergeTwoCar", {}, (err, result) => {
+      console.log(result)
+      const { from, to } = result[0].returnValues;
+      let arr1 = deleteIndexArray(from, cars);
+      let arr2 = deleteIndexArray(to, cars);
+      setCars([
+        ...arr1, arr2
+      ])
+      setSelectedCar([]);
+    })
+  }
+
   //merge car
-  // const mergeTwoCars = async () => {
-  //   const name = window.prompt("Enter name of ur new car: ");
-  //   await carContract.methods
-  //     .mergeTwoCar()
-  // }
+  const mergeTwoCars = async () => {
+    if (selectedCar.length == 2) {
+      const name = window.prompt("Please enter name for your new car: ");
+      if (!name) {
+        return alert("Please enter name for your new car!");
+      }
+      await carContract.methods
+        .mergeTwoCar(selectedCar[0], selectedCar[1], name)
+        .send({from: userAddress})
+        .on("receipt", (result) => {
+          handleMergeTwoCar();
+        })
+        .on("error", (error) => console.log(error))
+    } else {
+      return alert("Please select car for merge action!");
+    }
+  }
 
   //level up success
   const upLevelSuccess = () => {
@@ -176,6 +209,7 @@ function App() {
             />
           </div>
           <button onClick={() => createRandomCar()}>Enter</button>
+          <button onClick={() => mergeTwoCars()}>Merge two car</button>
         </div>
         <div style={{width: '100%'}}> 
           {loading 

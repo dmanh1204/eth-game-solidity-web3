@@ -1,6 +1,28 @@
 {
-    "address": "0xC8F9925372d0d7a81c93875F5f6FcAA134437099",
+    "address": "0x8cBD7dD51CE89BDCb4E69Efb8430Ea82bfDA4D23",
 	"abi": [
+        {
+            "constant": false,
+            "inputs": [
+                {
+                    "name": "_name",
+                    "type": "string"
+                },
+                {
+                    "name": "color",
+                    "type": "uint256"
+                },
+                {
+                    "name": "level",
+                    "type": "uint256"
+                }
+            ],
+            "name": "createCarWithLevel",
+            "outputs": [],
+            "payable": false,
+            "stateMutability": "nonpayable",
+            "type": "function"
+        },
         {
             "constant": false,
             "inputs": [
@@ -27,6 +49,28 @@
             "outputs": [],
             "payable": true,
             "stateMutability": "payable",
+            "type": "function"
+        },
+        {
+            "constant": false,
+            "inputs": [
+                {
+                    "name": "_from",
+                    "type": "uint256"
+                },
+                {
+                    "name": "_to",
+                    "type": "uint256"
+                },
+                {
+                    "name": "_name",
+                    "type": "string"
+                }
+            ],
+            "name": "mergeTwoCar",
+            "outputs": [],
+            "payable": false,
+            "stateMutability": "nonpayable",
             "type": "function"
         },
         {
@@ -77,6 +121,28 @@
                 }
             ],
             "name": "LevelUpSuccess",
+            "type": "event"
+        },
+        {
+            "anonymous": false,
+            "inputs": [
+                {
+                    "indexed": false,
+                    "name": "_from",
+                    "type": "uint256"
+                },
+                {
+                    "indexed": false,
+                    "name": "_to",
+                    "type": "uint256"
+                },
+                {
+                    "indexed": false,
+                    "name": "name",
+                    "type": "string"
+                }
+            ],
+            "name": "MergeTwoCar",
             "type": "event"
         },
         {
