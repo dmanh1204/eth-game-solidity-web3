@@ -1,6 +1,24 @@
 {
-    "address": "0x8cBD7dD51CE89BDCb4E69Efb8430Ea82bfDA4D23",
+    "address": "0x3Bd6d922122524416954341DAdeC17835E238a9c",
 	"abi": [
+        {
+            "constant": false,
+            "inputs": [
+                {
+                    "name": "_id",
+                    "type": "uint256"
+                },
+                {
+                    "name": "_newName",
+                    "type": "string"
+                }
+            ],
+            "name": "changeCarName",
+            "outputs": [],
+            "payable": false,
+            "stateMutability": "nonpayable",
+            "type": "function"
+        },
         {
             "constant": false,
             "inputs": [
@@ -143,6 +161,23 @@
                 }
             ],
             "name": "MergeTwoCar",
+            "type": "event"
+        },
+        {
+            "anonymous": false,
+            "inputs": [
+                {
+                    "indexed": false,
+                    "name": "_carID",
+                    "type": "uint256"
+                },
+                {
+                    "indexed": false,
+                    "name": "newName",
+                    "type": "string"
+                }
+            ],
+            "name": "ChangeCarName",
             "type": "event"
         },
         {

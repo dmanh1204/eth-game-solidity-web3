@@ -14,6 +14,7 @@ function App() {
   const [cars, setCars] = useState(null);
   const [loading, setLoading] = useState(true);
   const [selectedCar, setSelectedCar] = useState([]);
+  const [mergeSuccess, setMergeSucess] = useState(false);
 
   useEffect(() => {
     loadBlockchainData();
@@ -131,21 +132,50 @@ function App() {
 
   //delete index from array
   const deleteIndexArray = (id, arr) => {
-    const index = arr.includes((e) => e.id == id);
+    const index = arr.findIndex((e) => e.id === id);
     return [...arr.slice(0, index), ...arr.slice(index + 1, arr.length)];
+  }
+
+
+  //handle change name
+  const handleChangeName = () => {
+    return carContract.getPastEvents("ChangeCarName", {}, (err, result) => {
+      const { newName } = result[0].returnValues;
+      let index = cars.findIndex((e) => e.id === selectedCar[0]);
+      cars[index].name = newName;
+      setCars([...cars]);
+    })
+  }
+  //change name
+  const changeName = async () => {
+    if (selectedCar.length == 1) {
+      const newName = window.prompt("Please enter new name: ");
+      if (!newName) {
+        return alert("Don't have new name yet!");
+      }
+      await carContract.methods
+        .changeCarName(selectedCar[0], newName)
+        .send({from: userAddress})
+        .on("receipt", (result) => {
+          handleChangeName();
+        })
+        .on("error", (error) => alert("Error!"));
+    } else {
+      return alert("Please select car to change its name")
+    }
   }
 
   //handle merge two car
   const handleMergeTwoCar = () => {
     return carContract.getPastEvents("MergeTwoCar", {}, (err, result) => {
+      const { _from, _to } = result[0].returnValues;
       console.log(result)
-      const { from, to } = result[0].returnValues;
-      let arr1 = deleteIndexArray(from, cars);
-      let arr2 = deleteIndexArray(to, cars);
-      setCars([
-        ...arr1, arr2
-      ])
+      let carArr;
+      carArr = deleteIndexArray(_from, cars);
+      carArr = deleteIndexArray(_to, carArr);
+      setCars([...carArr]);
       setSelectedCar([]);
+      setMergeSucess(true);
     })
   }
 
@@ -183,7 +213,9 @@ function App() {
   }
 
   //use effect for level up update
-
+  useEffect(() => {
+    if (mergeSuccess) createdCar();
+  }, [mergeSuccess])
   //handle onclick level up
   const levelUp = async (id, level) => {
     if (id && level) {
@@ -209,7 +241,6 @@ function App() {
             />
           </div>
           <button onClick={() => createRandomCar()}>Enter</button>
-          <button onClick={() => mergeTwoCars()}>Merge two car</button>
         </div>
         <div style={{width: '100%'}}> 
           {loading 
@@ -222,6 +253,10 @@ function App() {
                       <Car key={index} car={car} levelUp={levelUp} handleSelectCar={handleSelectCar} selectedCar={selectedCar} />
                     ))
                   }
+              </div>
+              <div style={{paddingTop: '50px', paddingLeft: "45%"}}>
+                <button onClick={() => {changeName()}}>Change Name</button>
+                <button onClick={() => mergeTwoCars()}>Merge two car</button>
               </div>
             </>
           ))}
