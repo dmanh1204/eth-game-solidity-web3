@@ -1,5 +1,6 @@
 import "./App.css";
 import Car from './Car';
+import SoldCar from './SoldCar';
 import Web3 from 'web3';
 
 import { useEffect, useState } from 'react';
@@ -15,6 +16,7 @@ function App() {
   const [loading, setLoading] = useState(true);
   const [selectedCar, setSelectedCar] = useState([]);
   const [mergeSuccess, setMergeSucess] = useState(false);
+  const [sellCar, setSellCar] = useState([]);
 
   useEffect(() => {
     loadBlockchainData();
@@ -50,6 +52,7 @@ function App() {
       );
       //get all car from owner
       getOwnerCars(contract);
+      handleSellCar(contract);
       // set contract to state
       setCarContract(contract);
       
@@ -98,6 +101,25 @@ function App() {
       console.log(error);
     }
   }
+
+  // const getOwnerSoldCar = async (contract) => {
+  //   try {
+  //     const carSold = await contract.methods
+  //       .getAllSoldCar()
+  //       .call({ from: userAddress });
+
+  //     let _carSold = [];
+  //     if (carSold && carSold.length > 0) {
+  //       for (let id of carSold) {
+  //         const _car = await contract.methods.cars(id).call();
+  //         _carSold = [..._carSold, _car];
+  //       }
+  //     }
+  //     await setSellCar(_carSold);
+  //   } catch (err) {
+  //     console.log(err);
+  //   }
+  // }
 
   const handleSelectCar = (id) => {
     const index = selectedCar.findIndex((e) => e == id);
@@ -161,7 +183,7 @@ function App() {
         })
         .on("error", (error) => alert("Error!"));
     } else {
-      return alert("Please select car to change its name")
+      return alert("Please select only one car to change its name")
     }
   }
 
@@ -212,6 +234,36 @@ function App() {
     })
   }
 
+  //handle transfer
+  const handleTransfer = () => {
+    return carContract.getPastEvents("Transfer", {}, (err, result) => {
+      if (!err) {
+        getOwnerCars(carContract);
+      }
+    })
+  }
+
+  //transfer
+  const transferFrom = async () => {
+    if (selectedCar.length == 1) {
+      const _to = window.prompt("Enter your address you want to transfer");
+      const _from = userAddress;
+      if (_to && _to === _from) {
+        return alert("Address transfer into must be not same as user address!");
+      }
+      return carContract.methods
+        .transferFrom(_from, _to, selectedCar[0])
+        .send({from: userAddress})
+        .on("receipt", (result) => {
+          handleTransfer();
+        })
+        .on("error", (err) => {
+          alert("Error!");
+        })
+    } else {
+      alert("Choose only 1")
+    }
+  }
   //use effect for level up update
   useEffect(() => {
     if (mergeSuccess) createdCar();
@@ -226,6 +278,40 @@ function App() {
           upLevelSuccess();
         })
         .on("error", () => alert("Error"))
+    }
+  }
+
+  //handle sell car 
+  const handleSellCar = async (contract) => {
+    const carSold = await contract.methods
+        .getAllSoldCar()
+        .call({ from: userAddress });
+    let _carSold = [];
+    if (carSold && carSold.length > 0) {
+      for (let id of carSold) {
+        const _car = await contract.methods.cars(id).call();
+        _carSold = [..._carSold, _car];
+      }
+    }
+    setSellCar(_carSold);
+    getOwnerCars(contract)
+  }
+  //sell car
+  const soldCar = async () => {
+    alert(selectedCar.length);
+    if (selectedCar.length === 1) {
+      await carContract.methods
+        .selledCar(selectedCar[0])
+        .send({from: userAddress})
+        .on("receipt", (result) => {
+          setSelectedCar([]);
+          handleSellCar(carContract);
+        })
+        .on("error", (err) => {
+          alert("Can not sell car, something is happend!");
+        })
+    } else {  
+      return alert("You can sell only one car in one transaction!");
     }
   }
 
@@ -245,21 +331,33 @@ function App() {
         <div style={{width: '100%'}}> 
           {loading 
           ? (<h3>Loading data from contract...</h3>) 
-          : (cars.length > 0 && (
+          : ((cars.length > 0 || sellCar.length > 0) && (
             <>
               <div className="list-cars">
                   {
                     cars.map((car, index) => (
-                      <Car key={index} car={car} levelUp={levelUp} handleSelectCar={handleSelectCar} selectedCar={selectedCar} />
+                      <Car key={index} car={car} sellCar={sellCar} levelUp={levelUp} handleSelectCar={handleSelectCar} selectedCar={selectedCar} soldCar={soldCar} />
                     ))
                   }
               </div>
               <div style={{paddingTop: '50px', paddingLeft: "45%"}}>
-                <button onClick={() => {changeName()}}>Change Name</button>
+                <button onClick={() => changeName()}>Change Name</button>
                 <button onClick={() => mergeTwoCars()}>Merge two car</button>
+                <button onClick={() => transferFrom()}>Transfer</button>
+                <button onClick={() => soldCar()}>Sell</button>
+              </div>
+              <hr />
+              <h3 style={{paddingLeft: "45%"}}>Car Market</h3>
+              <div className="list-cars">
+                  {
+                    sellCar.map((car, index) => (
+                      <Car key={index} car={car} sellCar={sellCar} handleSelectCar={handleSelectCar} selectedCar={selectedCar} soldCar={soldCar} isSell={true}/>
+                    ))
+                  }
               </div>
             </>
           ))}
+          
         </div>
     </div>
   );
